@@ -57,7 +57,7 @@ spec:
         spec: 
             containers: 
             -   name: master-con
-                image:prince12/jenkins:kube
+                image:jenkins:kube
                 volumeMounts:
                     -   name: project
                         mountPath: /home/jenkins
