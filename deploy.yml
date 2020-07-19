@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: php-pv-claim
+  labels:
+    app: httpd
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: webserver-httpd
+  labels:
+    app: httpd
+spec:
+  ports:
+    - nodePort: 30000
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: httpd
+    tier: web
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apache-php
+  labels:
+    app: httpd
+spec:
+  selector:
+    matchLabels:
+      app: httpd
+      tier: web
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: httpd
+        tier: web
+    spec:
+      containers:
+      - image: vimal13/apache-webserver-php
+        name: apache-php
+        ports:
+        - containerPort: 80
+          name: apache-php
+        volumeMounts:
+        - name: persistent-storage
+          mountPath: /var/www/html
+      volumes:
+      - name: persistent-storage
+        persistentVolumeClaim:
+          claimName: php-pv-claim
